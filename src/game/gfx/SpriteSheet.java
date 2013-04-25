@@ -17,7 +17,9 @@ public class SpriteSheet {
         BufferedImage image = null;
         try {
             image = ImageIO.read(new File(path));
-        } catch (IOException ex) {}
+        } catch (IOException ex) {
+            System.err.println("Error: " + ex.getMessage());
+        }
         
         this.path = path;
         this.width = image.getWidth();

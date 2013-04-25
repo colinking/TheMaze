@@ -4,26 +4,64 @@
  * Game engine originally developed by: (GH) vanZeben or (YT)DesignsbyZephyr
  * Edited by: Colin King
  * Started: April 20 2013
+ * 
+ * Bugs:
+ * Water animation activates too early (when he is not yet on the water tile)
+ * -maybe usiing bounding boxes and if the outmost box cross the edge of the tile then
+ * --the player is in the water?
+ * 
+ * Future Plans:
+ * Maze Generator
+ *      Possibly with the ablity to design levels in game?
+ * Darkness
+ * Menu system
+ * new Sprites
+ *      possibly with torch?
+ *      Different color shirts for dfferent players
+ * Teams
+ *      Would then need massive worlds
+ * Attacking w/ Health
+ * Power-ups
+ *      swirl animations
+ * Sounds? Might be repetitive/annoying
+ *      Sound bytes for moving/punching/drop pickup/etc.
+ * Enemies
+ * Spawns + Exits
+ * Credits page
+ * 
+ * later..?
+ * option for a Sandbox..
+ * Levels system
+ * inventory
+ * Goals?
+ * 
+ * School IP: "10.7.192.176"
  */
 
 package game;
 
 import game.entities.Player;
+import game.entities.PlayerMP;
 import game.gfx.Screen;
 import game.gfx.SpriteSheet;
 import game.level.Level;
+import game.net.GameClient;
+import game.net.GameServer;
+import game.net.IPAddressGrabber;
+import game.net.packets.Packet00Login;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
 public class Game extends Canvas implements Runnable {
 
+    public static Game game;
     public final int WIDTH = 160;
     public final int HEIGHT = WIDTH / 12 * 9;
     public final int SCALE = 3;
@@ -33,13 +71,18 @@ public class Game extends Canvas implements Runnable {
     public InputHandler input;
     public Level level;
     public Player player;
-    private JFrame frame;
+    private final String mapName = "mazeOne.png";
+    private final String ipAddress = new IPAddressGrabber().getIP();
+    public JFrame frame;
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-    private SpriteSheet spriteSheet = new SpriteSheet("SpriteSheet.png");
+    private SpriteSheet spriteSheet = new SpriteSheet("spriteSheet.png");
     private Screen screen;
     private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
     private int[] colors = new int[6*6*6];
-
+    public GameClient socketClient;
+    public GameServer socketServer;
+    public WindowHandler windowHandler;
+    
     public Game() {
         setMinimumSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
         setMaximumSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -60,6 +103,7 @@ public class Game extends Canvas implements Runnable {
     }
 
     public void init() {
+        game = this;
         int index = 0;
         for (int r = 0; r < 6; r++) {
             for (int g = 0; g < 6; g++) {
@@ -72,16 +116,32 @@ public class Game extends Canvas implements Runnable {
                 }
             }
         }
-        screen = new Screen(WIDTH, HEIGHT, new SpriteSheet("SpriteSheet.png"));
+        screen = new Screen(WIDTH, HEIGHT, spriteSheet);
         input = new InputHandler(this);
-        level = new Level(64, 64);
-        player = new Player(level, 0, 0, input);
+        level = new Level(mapName);
+        windowHandler = new WindowHandler(this);
+        player = new PlayerMP(level, 100, 100, input, JOptionPane.showInputDialog(this, "Please enter a username"), null, -1);
         level.addEntity(player);
+        Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y);
+        
+        if(socketServer != null) {
+            socketServer.addConnection((PlayerMP) player, loginPacket);
+        }
+//        socketClient.sendData("ping".getBytes());
+        
+        loginPacket.writeData(socketClient);
     }
 
     public synchronized void start() {
         running = true;
         new Thread(this).start(); //new Thread that runs the method run()
+        
+        if(JOptionPane.showConfirmDialog(this, "Do you want to run the server?") == 0) {
+            socketServer = new GameServer(this);
+            socketServer.start();
+        }
+        socketClient = new GameClient(this, ipAddress);
+        socketClient.start();
     }
 
     @Override
@@ -117,7 +177,7 @@ public class Game extends Canvas implements Runnable {
 
             if (System.currentTimeMillis() - lastTimer >= 1000) {
                 lastTimer += 1000;
-                System.out.println(ticks + " ticks, " + frames + " frames");
+                frame.setTitle(ticks + " ticks, " + frames + " frames");
                 ticks = 0;
                 frames = 0;
             }
@@ -140,7 +200,7 @@ public class Game extends Canvas implements Runnable {
         int yOffset = player.y - screen.height / 2;
         
         level.renderTiles(screen, xOffset, yOffset);
-        
+        level.renderEntities(screen);
         for (int y = 0; y < screen.height; y++) {
             for (int x = 0; x < screen.width; x++) {
                 int colorCode = screen.pixels[x + y * screen.width];
@@ -149,8 +209,6 @@ public class Game extends Canvas implements Runnable {
                 }
             }
         }
-        
-        level.renderEntities(screen);
         
         Graphics g = bs.getDrawGraphics();
 
