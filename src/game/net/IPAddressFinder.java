@@ -30,7 +30,7 @@ public class IPAddressFinder extends Thread {
         byte[] data = new byte[1024];
         DatagramPacket packet;
         Packet03HostCheck p = new Packet03HostCheck();
-        for(int i = 0; i < 99; i++) {
+        for(int i = 0; i < 100; i++) {
             String comp = Integer.toString(i);
             if(comp.length() == 1) {
                 comp = "0" + comp;

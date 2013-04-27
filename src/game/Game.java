@@ -127,7 +127,6 @@ public class Game extends Canvas implements Runnable {
         input = new InputHandler(this);
         windowHandler = new WindowHandler(this);
         player = new PlayerMP(level, 100, 100, input, JOptionPane.showInputDialog(this, "Please enter a username"), null, -1);
-        screen.updateDarkPixels(100, 100, 3);
         level.addEntity(player);
         Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y);
         
@@ -147,8 +146,8 @@ public class Game extends Canvas implements Runnable {
             socketServer = new GameServer(this);
             socketServer.start();
         }
-        (new IPAddressFinder()).start();
-        socketClient = new GameClient(this, ipAddress); //host
+//        (new IPAddressFinder()).start();
+        socketClient = new GameClient(this, "192.168.1.151"); //host
         socketClient.start();
     }
 

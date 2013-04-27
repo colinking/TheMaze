@@ -99,9 +99,6 @@ public class Player extends Mob {
         int walkingSpeed = 4; //lower + faster
         int flipTop = (numSteps >> walkingSpeed) & 1;
         int flipBottom = (numSteps >> walkingSpeed) & 1;
-
-        if(isMoving) // and on same team
-            screen.updateDarkPixels(x, y, 3);
         
         if (movingDir == 1) {
             xTile += 2;

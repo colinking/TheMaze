@@ -10,7 +10,6 @@ public class Screen {
     public int height;
     public SpriteSheet spriteSheet;
     public int[] pixels;
-    public int[] darkPixels;
     private int mapWidth;
     private int mapHeight;
 
@@ -22,7 +21,6 @@ public class Screen {
         this.mapHeight = mapHeight;
 
         pixels = new int[width * height];
-        darkPixels = new int[mapWidth * mapHeight];
     }
 
     public void render(int xPos, int yPos, int tile, int color, int mirrorDir, int scale) {
@@ -60,14 +58,7 @@ public class Screen {
                             if (xPixel + xScale < 0 || xPixel + xScale >= width) {
                                 continue;
                             }
-//                            System.out.println("X: " + (xPos + xOffset + xScale) + " Y: " + (yPos + yOffset + yScale));
-//                            if (darkPixels[(xPixel + xOffset + xScale) + (yPixel + yOffset + yScale) * mapWidth] != 0) {
-                            if(true){
-                                pixels[(xPixel + xScale) + (yPixel + yScale) * width] = col;
-                            } else {
-                                pixels[(xPixel + xScale) + (yPixel + yScale) * width] = 0;
-                            }
-
+                            pixels[(xPixel + xScale) + (yPixel + yScale) * width] = col;
                         }
                     }
                 }
@@ -78,51 +69,5 @@ public class Screen {
     public void setOffset(int xOffset, int yOffset) {
         this.xOffset = xOffset;
         this.yOffset = yOffset;
-    }
-
-    public void updateDarkPixels(int xUpdate, int yUpdate, int radius) {
-//        xUpdate -= 20;
-//        int x, y;
-//        int maxLength = 24;
-////        int side = (radius - 2) / 4;
-//        for (y = yUpdate - maxLength; y < yUpdate; y++) {
-//            for (x = xUpdate - (y - yUpdate); x < xUpdate + maxLength; x++) {
-//                darkPixels[x + y * mapWidth] = 1;
-//            }
-//            maxLength++;
-//        }
-//        for (y = yUpdate - 1; y < yUpdate + maxLength; y++) {
-//            maxLength--;
-//            for (x = xUpdate + (y - yUpdate); x < xUpdate + maxLength; x++) {
-//                darkPixels[x + y * mapWidth] = 1;
-//            }
-//        }
-        
-//        int x, y;
-        radius *= 8;
-//        int times = 0;
-//        for(y = yUpdate - radius; y < yUpdate - radius / 2; y++) {
-//            for(x = xUpdate - radius/2 - times; x < times + xUpdate + radius/2; x++) {
-//                darkPixels[x + y * mapWidth] = 1;
-//            }
-//            times++;
-//        }
-//        for(y = yUpdate - radius / 2; y < yUpdate + radius / 2; y++) {
-//            for(x = xUpdate - times - radius / 2; x < times + xUpdate + radius / 2; x++) {
-//                darkPixels[x + y * mapWidth] = 1;
-//            }
-//        }
-//        for(y = yUpdate + radius / 2; y < yUpdate + radius; y++) {
-//            for(x = xUpdate - radius/2 - times; x < xUpdate + radius/2 + times; x++) {
-//                darkPixels[x + y * mapWidth] = 1;
-//            }
-//            times--;
-//        }
-        
-        for(int y = yUpdate - radius; y < yUpdate + radius; y++) {
-            for(int x = xUpdate - radius; x < xUpdate + radius; x++) {
-                darkPixels[x + y * mapWidth] = 1;
-            }
-        }
     }
 }
