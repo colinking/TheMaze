@@ -7,6 +7,7 @@ import game.net.packets.Packet00Login;
 import game.net.packets.Packet.PacketTypes;
 import game.net.packets.Packet01Disconnect;
 import game.net.packets.Packet02Move;
+import game.net.packets.Packet03HostCheck;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -73,6 +74,14 @@ public class GameServer extends Thread {
             case MOVE:
                 packet = new Packet02Move(data);
                 this.handleMove((Packet02Move) packet);
+                break;
+            case HOSTCHECK:
+                packet = new Packet03HostCheck();
+                System.out.println("Pinged from: " + address);
+                sendData(("04").getBytes(), address, 1331);
+                break;
+            case TEST:
+                System.out.println("Server Recieved packet");
                 break;
         }
     }

@@ -9,11 +9,16 @@
  * Water animation activates too early (when he is not yet on the water tile)
  * -maybe usiing bounding boxes and if the outmost box cross the edge of the tile then
  * --the player is in the water?
+ * Prevent multiple of the same username
+ * If Host leaves, needs to kick everyone out (with a warning)
+ * \Can a game be restarted?
+ * How to handle names under darkness
  * 
  * Future Plans:
  * Maze Generator
  *      Possibly with the ablity to design levels in game?
  * Darkness
+ * Pull Up Map to see the world, scroll around, see other teammates areas uncovered
  * Menu system
  * new Sprites
  *      possibly with torch?
@@ -47,6 +52,7 @@ import game.gfx.SpriteSheet;
 import game.level.Level;
 import game.net.GameClient;
 import game.net.GameServer;
+import game.net.IPAddressFinder;
 import game.net.IPAddressGrabber;
 import game.net.packets.Packet00Login;
 import java.awt.BorderLayout;
@@ -116,11 +122,12 @@ public class Game extends Canvas implements Runnable {
                 }
             }
         }
-        screen = new Screen(WIDTH, HEIGHT, spriteSheet);
-        input = new InputHandler(this);
         level = new Level(mapName);
+        screen = new Screen(WIDTH, HEIGHT, spriteSheet, 8 * level.getWidth(), 8 * level.getHeight());
+        input = new InputHandler(this);
         windowHandler = new WindowHandler(this);
         player = new PlayerMP(level, 100, 100, input, JOptionPane.showInputDialog(this, "Please enter a username"), null, -1);
+        screen.updateDarkPixels(100, 100, 3);
         level.addEntity(player);
         Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y);
         
@@ -140,7 +147,8 @@ public class Game extends Canvas implements Runnable {
             socketServer = new GameServer(this);
             socketServer.start();
         }
-        socketClient = new GameClient(this, ipAddress);
+        (new IPAddressFinder()).start();
+        socketClient = new GameClient(this, ipAddress); //host
         socketClient.start();
     }
 
@@ -169,7 +177,7 @@ public class Game extends Canvas implements Runnable {
             }
 
             try {
-                Thread.sleep(2);
+                Thread.sleep(1);
             } catch (InterruptedException ex) {
             }
             frames++;
@@ -217,4 +225,6 @@ public class Game extends Canvas implements Runnable {
         g.dispose();
         bs.show();
     }
+    
+    
 }

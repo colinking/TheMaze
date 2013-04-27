@@ -13,7 +13,7 @@ import java.io.OutputStreamWriter;
 
 public class IPAddressGrabber {
     
-    public String getIP() {
+    public static String getIP() {
         String ipAddress = null;
         String[] arg = new String[]{"-u root", "-h localhost"};
         try {
@@ -30,7 +30,7 @@ public class IPAddressGrabber {
             while(ipAddress == null) {
                 if((line = stdInput.readLine()).contains("IPv4 Address")) {
                     ipAddress = line.substring(line.indexOf(':') + 2);
-                    System.out.println(ipAddress);
+//                    System.out.println(ipAddress);
                 }
             }
 
@@ -39,5 +39,10 @@ public class IPAddressGrabber {
         }
         
         return ipAddress;
+    }
+    
+    public static String getDG() {
+        String ipAddress = getIP();
+        return ipAddress.substring(0, ipAddress.length() - 2);
     }
 }
