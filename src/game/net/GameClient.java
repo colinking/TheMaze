@@ -41,7 +41,6 @@ public class GameClient extends Thread {
             byte[] data = new byte[1024];
             DatagramPacket packet = new DatagramPacket(data, data.length);
             try {
-                //continously looks for packets from the server socket
                 socket.receive(packet);
             } catch (IOException ex) {
                 Logger.getLogger(GameClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -67,6 +66,7 @@ public class GameClient extends Thread {
         switch (type) {
             default:
             case INVALID:
+                System.out.println("INVALID Packet");
                 break;
             case LOGIN:
                 handleLogin(new Packet00Login(data), address, port);

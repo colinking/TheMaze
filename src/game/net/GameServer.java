@@ -59,6 +59,7 @@ public class GameServer extends Thread {
         switch (type) {
             default:
             case INVALID:
+                System.out.println("INVALID Packet");
                 break;
             case LOGIN:
                 packet = new Packet00Login(data);

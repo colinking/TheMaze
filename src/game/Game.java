@@ -146,9 +146,11 @@ public class Game extends Canvas implements Runnable {
             socketServer = new GameServer(this);
             socketServer.start();
         }
-//        (new IPAddressFinder()).start();
-        socketClient = new GameClient(this, "192.168.1.151"); //host
+        
+        socketClient = new GameClient(this, "192.168.1.151");
         socketClient.start();
+        IPAddressFinder find = new IPAddressFinder(this);
+        find.start();
     }
 
     @Override
