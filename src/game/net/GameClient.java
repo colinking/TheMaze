@@ -6,7 +6,6 @@ import game.net.packets.Packet;
 import game.net.packets.Packet00Login;
 import game.net.packets.Packet01Disconnect;
 import game.net.packets.Packet02Move;
-import game.net.packets.Packet03HostCheck;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -41,6 +40,7 @@ public class GameClient extends Thread {
             byte[] data = new byte[1024];
             DatagramPacket packet = new DatagramPacket(data, data.length);
             try {
+                //continously looks for packets from the server socket
                 socket.receive(packet);
             } catch (IOException ex) {
                 Logger.getLogger(GameClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -66,7 +66,6 @@ public class GameClient extends Thread {
         switch (type) {
             default:
             case INVALID:
-                System.out.println("INVALID Packet");
                 break;
             case LOGIN:
                 handleLogin(new Packet00Login(data), address, port);
@@ -79,14 +78,6 @@ public class GameClient extends Thread {
             case MOVE:
                 packet = new Packet02Move(data);
                 this.handleMove((Packet02Move)packet);
-                break;
-            case HOSTCHECK:
-//                packet = new Packet03HostCheck();
-                System.out.println("Found host: " + address);
-                break;
-            case TEST:
-                System.out.println("Client Recieved packet");
-                break;
         }
     }
 

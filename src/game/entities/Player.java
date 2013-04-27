@@ -99,7 +99,7 @@ public class Player extends Mob {
         int walkingSpeed = 4; //lower + faster
         int flipTop = (numSteps >> walkingSpeed) & 1;
         int flipBottom = (numSteps >> walkingSpeed) & 1;
-        
+
         if (movingDir == 1) {
             xTile += 2;
         } else if (movingDir > 1) {

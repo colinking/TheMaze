@@ -17,13 +17,13 @@ public class SpriteSheet {
         BufferedImage image = null;
         try {
             image = ImageIO.read(new File(path));
+            this.width = image.getWidth();
+        this.height = image.getHeight();
         } catch (IOException ex) {
             System.err.println("Error: " + ex.getMessage());
         }
         
         this.path = path;
-        this.width = image.getWidth();
-        this.height = image.getHeight();
         
         pixels = image.getRGB(0, 0, width, height, null, 0, width);
         

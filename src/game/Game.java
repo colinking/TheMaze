@@ -9,16 +9,11 @@
  * Water animation activates too early (when he is not yet on the water tile)
  * -maybe usiing bounding boxes and if the outmost box cross the edge of the tile then
  * --the player is in the water?
- * Prevent multiple of the same username
- * If Host leaves, needs to kick everyone out (with a warning)
- * \Can a game be restarted?
- * How to handle names under darkness
  * 
  * Future Plans:
  * Maze Generator
  *      Possibly with the ablity to design levels in game?
  * Darkness
- * Pull Up Map to see the world, scroll around, see other teammates areas uncovered
  * Menu system
  * new Sprites
  *      possibly with torch?
@@ -52,8 +47,6 @@ import game.gfx.SpriteSheet;
 import game.level.Level;
 import game.net.GameClient;
 import game.net.GameServer;
-import game.net.IPAddressFinder;
-import game.net.IPAddressGrabber;
 import game.net.packets.Packet00Login;
 import java.awt.BorderLayout;
 import java.awt.Canvas;
@@ -62,6 +55,9 @@ import java.awt.Graphics;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -77,17 +73,27 @@ public class Game extends Canvas implements Runnable {
     public InputHandler input;
     public Level level;
     public Player player;
-    private final String mapName = "mazeOne.png";
-    private final String ipAddress = new IPAddressGrabber().getIP();
+    private final String mapName = "images\\mazeOne.png";
+    private String localIPAddress = "localhost";
+    private String hostIPAddress = initIP();
     public JFrame frame;
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-    private SpriteSheet spriteSheet = new SpriteSheet("spriteSheet.png");
+    private SpriteSheet spriteSheet = new SpriteSheet("images\\spriteSheet.png");
     private Screen screen;
     private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
     private int[] colors = new int[6*6*6];
     public GameClient socketClient;
     public GameServer socketServer;
     public WindowHandler windowHandler;
+    
+    public String initIP() {
+        try {
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Game.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            return "localhost";
+        }
+    }
     
     public Game() {
         setMinimumSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
@@ -122,11 +128,15 @@ public class Game extends Canvas implements Runnable {
                 }
             }
         }
-        level = new Level(mapName);
-        screen = new Screen(WIDTH, HEIGHT, spriteSheet, 8 * level.getWidth(), 8 * level.getHeight());
+        screen = new Screen(WIDTH, HEIGHT, spriteSheet);
         input = new InputHandler(this);
+        level = new Level(mapName);
         windowHandler = new WindowHandler(this);
-        player = new PlayerMP(level, 100, 100, input, JOptionPane.showInputDialog(this, "Please enter a username"), null, -1);
+        String name = JOptionPane.showInputDialog(this, "Please enter a username", NAME, JOptionPane.PLAIN_MESSAGE);
+        if(name == null) {
+            System.exit(0);
+        }
+        player = new PlayerMP(level, 100, 100, input, name, null, -1);
         level.addEntity(player);
         Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y);
         
@@ -141,16 +151,39 @@ public class Game extends Canvas implements Runnable {
     public synchronized void start() {
         running = true;
         new Thread(this).start(); //new Thread that runs the method run()
-        
-        if(JOptionPane.showConfirmDialog(this, "Do you want to run the server?") == 0) {
-            socketServer = new GameServer(this);
-            socketServer.start();
+        String[] buttons = {"Multiplayer", "Singleplayer", "Quit"};
+        switch(JOptionPane.showOptionDialog(this, "Multiplayer or Singleplayer?", NAME, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null, buttons, buttons[1])){
+            case JOptionPane.YES_OPTION: //MP
+                switch(JOptionPane.showConfirmDialog(this, "Do you want to host the server?", NAME, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE)) {
+                    case JOptionPane.YES_OPTION:
+                        System.out.println("Players should connect to: " + hostIPAddress);
+                        socketServer = new GameServer(this);
+                        socketServer.start();
+                        break;
+                    case JOptionPane.NO_OPTION:
+                        hostIPAddress = (String)JOptionPane.showInputDialog(frame,"Enter the IP Address to connect to:", 
+                            "IP Address", JOptionPane.WARNING_MESSAGE, null, null, hostIPAddress.substring(0, hostIPAddress.length() - 2));
+                        if(hostIPAddress == null) {
+                            System.exit(0);
+                        }
+                        System.out.println("IP Address entered: " + hostIPAddress);
+                        break;
+                    case JOptionPane.CLOSED_OPTION:
+                        System.exit(0);
+                        break;
+                }
+                socketClient = new GameClient(this, hostIPAddress);
+                socketClient.start();
+                break;
+            case JOptionPane.NO_OPTION: //SP
+                socketClient = new GameClient(this, localIPAddress);
+                socketClient.start();
+                break;
+            case JOptionPane.CANCEL_OPTION:
+            case JOptionPane.CLOSED_OPTION:
+                System.exit(0);
+                break;
         }
-        
-        socketClient = new GameClient(this, "192.168.1.151");
-        socketClient.start();
-        IPAddressFinder find = new IPAddressFinder(this);
-        find.start();
     }
 
     @Override
@@ -176,11 +209,7 @@ public class Game extends Canvas implements Runnable {
                 tick();
                 delta--;
             }
-
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ex) {
-            }
+            
             frames++;
             render();
 
@@ -226,6 +255,4 @@ public class Game extends Canvas implements Runnable {
         g.dispose();
         bs.show();
     }
-    
-    
 }

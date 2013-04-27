@@ -147,7 +147,7 @@ public class Level {
     public void removePlayerMP(String username) {
         int index = 0;
         ArrayList<Entity> temp = new ArrayList<>(entities);
-        for(Entity e: temp) {
+        for(Entity e : temp) {
             if(e instanceof PlayerMP && ((PlayerMP)e).getUsername().equalsIgnoreCase(username)) {
                 break;
             }
@@ -168,7 +168,7 @@ public class Level {
     private int getPlayerMPIndex(String username) {
         int index = 0;
         ArrayList<Entity> temp = new ArrayList<>(entities);
-        for(Entity e: temp) {
+        for(Entity e : temp) {
             if(e instanceof PlayerMP && ((PlayerMP) e).getUsername().equalsIgnoreCase(username)) {
                 break;
             }
@@ -185,12 +185,5 @@ public class Level {
         player.setNumSteps(numSteps);
         player.setIsMoving(isMoving);
         player.setMovingDir(movingDir);
-    }
-    
-    public int getHeight() {
-        return height;
-    }
-    public int getWidth() {
-        return width;
     }
 }
