@@ -70,7 +70,7 @@ public class Player extends Mob {
             }
             if (input.right.getPressed()) {
                 xa++;
-        }
+            }
         }
         
         if (xa != 0 || ya != 0) {

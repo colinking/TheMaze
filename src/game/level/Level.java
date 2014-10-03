@@ -1,5 +1,6 @@
 package game.level;
 
+import game.MazeGenerator;
 import game.entities.Entity;
 import game.entities.PlayerMP;
 import game.gfx.Screen;
@@ -28,7 +29,8 @@ public class Level {
             this.width = 64;
             this.height = 64;
             tiles = new byte[width * height];
-            this.generateLevel();
+            MazeGenerator maze = new MazeGenerator();
+            setTiles(maze.get1DBoard());
         }
     }
     
@@ -48,8 +50,21 @@ public class Level {
         int[] tileColors = this.image.getRGB(0, 0, width, height, null, 0, width);
         for(int y = 0; y < height; y++) {
             for(int x = 0; x < width; x++) {
-                tileCheck: for(Tile t: Tile.tiles) {
+                for(Tile t: Tile.tiles) {
                     if(t != null && t.getLevelColor() == tileColors[x + y * width]) {
+                        this.tiles[x + y * width] = t.getId();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    private void setTiles(int[] board) {
+        for(int y = 0; y < height; y++) {
+            for(int x = 0; x < width; x++) {
+                tileCheck: for(Tile t: Tile.tiles) {
+                    if(t != null && t.getId() == board[x + y * width]) {
                         this.tiles[x + y * width] = t.getId();
                         break tileCheck;
                     }
@@ -71,25 +86,21 @@ public class Level {
         image.setRGB(x, y, newTile.getLevelColor());
     }
     
-    public void generateLevel() {
-        Random rand = new Random();
-        //generate number of spawns for number of teams?
-        //recursion!
-        //
-//        for (int y = 0; y < height; y++) {
-//            for (int x = 0; x < width; x++) {
-//                int ran = rand.nextInt(3);
-//                if(ran == 0) {
-//                    tiles[x + y * width] = Tile.GRASS.getId();
-//                }
-//                else if(ran == 1){
-//                    tiles[x + y * width] = Tile.STONE.getId();
-//                }
-//                else {
-//                    tiles[x + y * width] = Tile.WATER.getId();
-//                }
-//            }
-//        }
+    public void setLevel(int[][] board) {
+        for(int r = 0; r < board.length; r++) {
+            for(int c = 0; c < board[r].length; c++) {
+//                tiles[r + c * board.length] = board[r][c];
+                switch(board[r][c]) {
+                    case 0:
+                        tiles[r + c * board[r].length] = Tile.GRASS.getId();
+                        break;
+                    case 1:
+                    case 2:
+                        tiles[r + c * board[r].length] = Tile.STONE.getId();
+                        break;
+                }
+            }
+        }
     }
 
     public void renderTiles(Screen screen, int xOffset, int yOffset) {

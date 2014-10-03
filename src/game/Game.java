@@ -73,18 +73,20 @@ public class Game extends Canvas implements Runnable {
     public InputHandler input;
     public Level level;
     public Player player;
-    private final String mapName = "images\\mazeOne.png";
+    private final String mapName = "images/MazeOne.png";
+//    private final String mapName = null; //loads generate map
     private String localIPAddress = "localhost";
     private String hostIPAddress = initIP();
     public JFrame frame;
     private BufferedImage image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-    private SpriteSheet spriteSheet = new SpriteSheet("images\\spriteSheet.png");
+    private SpriteSheet spriteSheet = new SpriteSheet("images/spriteSheet.png");
     private Screen screen;
     private int[] pixels = ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
     private int[] colors = new int[6*6*6];
     public GameClient socketClient;
     public GameServer socketServer;
     public WindowHandler windowHandler;
+    public MazeGenerator maze;
     
     public String initIP() {
         try {
@@ -128,6 +130,8 @@ public class Game extends Canvas implements Runnable {
                 }
             }
         }
+        maze = new MazeGenerator();
+        maze.printMaze();
         screen = new Screen(WIDTH, HEIGHT, spriteSheet);
         input = new InputHandler(this);
         level = new Level(mapName);
@@ -136,7 +140,7 @@ public class Game extends Canvas implements Runnable {
         if(name == null) {
             System.exit(0);
         }
-        player = new PlayerMP(level, 100, 100, input, name, null, -1);
+        player = new PlayerMP(level, 100, 100, input, name, null, -1, 0);
         level.addEntity(player);
         Packet00Login loginPacket = new Packet00Login(player.getUsername(), player.x, player.y);
         
@@ -162,7 +166,7 @@ public class Game extends Canvas implements Runnable {
                         break;
                     case JOptionPane.NO_OPTION:
                         hostIPAddress = (String)JOptionPane.showInputDialog(frame,"Enter the IP Address to connect to:", 
-                            "IP Address", JOptionPane.WARNING_MESSAGE, null, null, hostIPAddress.substring(0, hostIPAddress.length() - 2));
+                            "IP Address", JOptionPane.WARNING_MESSAGE, null, null, hostIPAddress);
                         if(hostIPAddress == null) {
                             System.exit(0);
                         }
@@ -203,6 +207,7 @@ public class Game extends Canvas implements Runnable {
             long now = System.nanoTime();
             delta += (now - lastTime) / nsPerTick;
             lastTime = now;
+            
 
             while (delta >= 1) {
                 ticks++;
@@ -228,31 +233,32 @@ public class Game extends Canvas implements Runnable {
     }
 
     public void render() {
-        BufferStrategy bs = getBufferStrategy();
-        if (bs == null) {
-            createBufferStrategy(3);
-            return;
-        }
+//        BufferStrategy bs = getBufferStrategy();
+//        if (bs == null) {
+//            createBufferStrategy(3);
+//            return;
+//        }
         
         int xOffset = player.x - screen.width / 2;
         int yOffset = player.y - screen.height / 2;
         
         level.renderTiles(screen, xOffset, yOffset);
         level.renderEntities(screen);
-        for (int y = 0; y < screen.height; y++) {
-            for (int x = 0; x < screen.width; x++) {
-                int colorCode = screen.pixels[x + y * screen.width];
-                if (colorCode < 255) {
-                    pixels[x + y * WIDTH] = colors[colorCode];
-                }
-            }
+//        for (int y = 0; y < screen.height; y++) {
+//            for (int x = 0; x < screen.width; x++) {
+        for(int i = 0; i < pixels.length; i++) {
+                int colorCode = screen.pixels[i];
+//                if (colorCode < 255) {
+                    pixels[i] = colors[colorCode];
+//                }
+            
         }
         
-        Graphics g = bs.getDrawGraphics();
-
+//        Graphics g = bs.getDrawGraphics();
+        Graphics g = this.getGraphics();
         g.drawImage(image, 0, 0, getWidth(), getHeight(), null);
 
         g.dispose();
-        bs.show();
+//        bs.show();
     }
 }
